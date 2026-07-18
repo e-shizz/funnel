@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Funnel — no arguments opens the drop window; one path converts immediately
+set -euo pipefail
+SELF="${BASH_SOURCE[0]}"
+while [[ -L "$SELF" ]]; do
+  _dir="$(cd "$(dirname "$SELF")" && pwd)"
+  SELF="$(readlink "$SELF")"
+  [[ "$SELF" != /* ]] && SELF="$_dir/$SELF"
+done
+ROOT="$(cd "$(dirname "$SELF")/.." && pwd)"
+export PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}"
+exec /usr/bin/python3 -m funnel.cli "$@"

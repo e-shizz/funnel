@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Funnel
+Comment=Drop a Windows .exe — get a Linux app
+Exec=funnel --ui
+Terminal=false
+Icon=funnel
+Categories=Utility;
+StartupNotify=true
+Keywords=wine;proton;windows;exe;
