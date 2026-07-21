@@ -180,6 +180,9 @@ class AddWindow(Gtk.Window):
 
 def main() -> int:
     ensure_layout()
+    # GTK3's Wayland backend derives xdg_toplevel.app_id from GLib's program
+    # name. It must match funnel.desktop so Plasma resolves the branded icon.
+    GLib.set_prgname("funnel")
     window = AddWindow()
     window.show_all()
     Gtk.main()

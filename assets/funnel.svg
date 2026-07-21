@@ -1,11 +1,45 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
   <title id="title">Funnel application icon</title>
-  <desc id="desc">A single bold funnel silhouette.</desc>
+  <desc id="desc">A polished teal funnel with a deep open mouth and narrow spout.</desc>
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#67F4E8"/>
+      <stop offset="0.52" stop-color="#22D3C5"/>
+      <stop offset="1" stop-color="#0891B2"/>
+    </linearGradient>
+    <linearGradient id="mouth" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0A1B2B"/>
+      <stop offset="1" stop-color="#123D53"/>
+    </linearGradient>
+  </defs>
   <path
-    d="M72 92 H440 L298 282 V420 H214 V282 Z"
-    fill="#22D3C5"
-    stroke="#102A43"
-    stroke-width="28"
+    d="M58 84 Q58 62 80 62 H432 Q454 62 454 84 Q454 94 447 103 L310 285 V424 Q310 446 288 446 H224 Q202 446 202 424 V285 L65 103 Q58 94 58 84 Z"
+    fill="url(#body)"
+    stroke="#081F33"
+    stroke-width="24"
     stroke-linejoin="round"
+  />
+  <path
+    d="M101 101 H411 L286 267 H226 Z"
+    fill="url(#mouth)"
+    stroke="#081F33"
+    stroke-width="14"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M91 87 H419"
+    fill="none"
+    stroke="#C8FFF9"
+    stroke-width="12"
+    stroke-linecap="round"
+    opacity="0.72"
+  />
+  <path
+    d="M226 292 V414"
+    fill="none"
+    stroke="#8AFFF3"
+    stroke-width="10"
+    stroke-linecap="round"
+    opacity="0.36"
   />
 </svg>
