@@ -177,3 +177,25 @@ Historical V2 contract tests remain in the private development repository as an
 honest record of a discarded architecture; they are not shipped as public
 release evidence. Funnel intentionally has no database, daemon, store, recipe
 service, or cloud component.
+
+## Built with Codex and GPT-5.6
+
+Funnel was created during OpenAI Build Week. The primary Codex thread used
+GPT-5.6 Sol and GPT-5.6 Luna in an isolated git worktree; its session ID is
+`019f72a8-9110-7683-87bb-7a6b1c8d594b`.
+
+Codex accelerated the implementation of the safe staging boundary, GTK
+one-drop interface, executable selection, installer recovery, full-trust MSIX
+manifest support, and generated Linux launchers. A later GPT-5.6 polish lane
+migrated the runtime from mandatory Steam Proton to UMU-Proton with system Wine
+fallback, added archive hardening, the read-only doctor, user-owned installer,
+and branded icon assets.
+
+The human product decisions remained explicit: Funnel had to produce a normal
+Desktop/application-menu app rather than another manager or output folder; keep
+original inputs untouched; use silent extraction; avoid an LLM or network API
+in the conversion path; and treat real manual use as the release gate. Codex
+proposed and implemented bounded changes inside those constraints. Ethan tested
+the actual ZIP, RAR5, installer, and MSIX paths and rejected simulated results
+as product proof. The dated commit history documents the Build Week work from
+initial product lock through the accepted Steam-independent release.
