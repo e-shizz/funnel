@@ -9,6 +9,22 @@ and on the XDG Desktop. Funnel does not move or rewrite the original payload.
 Steam is **not required**. Funnel prefers UMU, falls back to system Wine, and
 retains Steam Proton only as an optional legacy fallback.
 
+## Open-source foundation
+
+Funnel's compatibility path is built around three open-source projects:
+
+1. [UMU Launcher](https://github.com/Open-Wine-Components/umu-launcher) — the
+   preferred Steam-independent launcher and runtime manager;
+2. [Wine](https://www.winehq.org/) — the direct fallback and compatibility
+   foundation;
+3. [Proton](https://github.com/ValveSoftware/Proton) — the Wine-based runtime
+   selected through UMU, with an existing Steam installation supported only as
+   an optional legacy path.
+
+Funnel does not vendor these projects. It discovers and invokes user-installed
+executables, keeping their installation, updates, and licenses separate. See
+[`THIRD_PARTY.md`](THIRD_PARTY.md) for upstream links and license details.
+
 ## Quick start
 
 ```bash

@@ -71,6 +71,12 @@ if [[ "$MODE" == "--check" || "$MODE" == "--dry-run" ]]; then
   exit "$missing"
 fi
 
+if [[ -L "$BIN_HOME/funnel" ]]; then
+  echo "Refusing to follow existing symlink: $BIN_HOME/funnel -> $(readlink -- "$BIN_HOME/funnel")" >&2
+  echo "Preserve or replace that development link explicitly, then run the installer again." >&2
+  exit 1
+fi
+
 mkdir -p "$APP_ROOT/funnel" "$BIN_HOME" "$DESKTOP_ROOT" \
   "$ICON_ROOT/scalable/apps" "$ICON_ROOT/48x48/apps" "$ICON_ROOT/128x128/apps" "$ICON_ROOT/256x256/apps"
 for module in "$ROOT"/funnel/*.py; do
