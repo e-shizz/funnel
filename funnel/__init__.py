@@ -1,14 +1,7 @@
-"""Funnel — Windows .exe in, Linux desktop app out. Mechanical. No LLM."""
+"""Funnel — Windows game in, Linux desktop launcher out. Local and deterministic."""
 
-from .pack import pack_path, PackResult
-from .detect import InspectionResult, detect_input, inspect_payload
+from .detect import Detected, detect_input
+from .pack import PackResult, pack_path
 
-__version__ = "0.1.0"
-__all__ = [
-    "pack_path",
-    "PackResult",
-    "detect_input",
-    "inspect_payload",
-    "InspectionResult",
-    "__version__",
-]
+__version__ = "0.2.0"
+__all__ = ["pack_path", "PackResult", "detect_input", "Detected", "__version__"]

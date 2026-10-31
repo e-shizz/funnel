@@ -59,6 +59,7 @@ class PackResult:
     icon: Path | None = None
     published_apps: list[PackResult] = field(default_factory=list)
     fixed_args: tuple[str, ...] = ()
+    already_existed: bool = False
 
 
 def _desktop_exec(path: Path | str) -> str:
@@ -101,7 +102,6 @@ def _pick_recipe(det: Detected) -> tuple[str, dict[str, str], list[str]]:
         recipe = "proton-jp" if recipe == "proton-default" else recipe + "+jp"
         notes.append("Japanese payload -> ja_JP locale")
     if "engine:unity" in hints:
-        env.setdefault("WINEDLLOVERRIDES", "winemenubuilder.exe=d")
         recipe = "proton-unity" if recipe == "proton-default" else recipe + "+unity"
         notes.append("Unity fingerprints")
     if "engine:alicesoft" in hints or "media:alm-mpeg" in hints:
@@ -145,6 +145,31 @@ def _publication_slot(base_slug: str, exe: Path, steam: Path, reserve_compat: bo
         number += 1
 
 
+def _result_from_record(record) -> PackResult:
+    data = record.data
+    return PackResult(
+        True, record.display_name, record.slug, Path(str(data.get("exe", ""))),
+        Path(str(data["launch"])), Path(str(data["desktop"])), Path(str(data.get("desktop_pin", ""))),
+        str(data.get("compat_id", "")), Path(str(data.get("compat_path", ""))), str(data.get("recipe", "")),
+        messages=[f"already_converted={record.state_path}"], hints=list(data.get("hints") or []),
+        env=dict(data.get("env") or {}), fixed_args=tuple(data.get("fixed_args") or ()),
+        already_existed=True,
+    )
+
+
+def _existing_result(source: Path) -> PackResult | None:
+    """Return the launcher(s) a previous conversion of ``source`` created, if still installed."""
+    from .library import find_by_source
+
+    records = find_by_source(source)
+    if not records:
+        return None
+    results = [_result_from_record(record) for record in records]
+    first = results[0]
+    first.published_apps = results[1:]
+    return first
+
+
 def _write_new(path: Path, content: str, mode: int | None = None) -> None:
     with path.open("x", encoding="utf-8") as handle:
         handle.write(content)
@@ -160,17 +185,19 @@ def pack_path(
     install_desktop: bool = True,
     force_name: str | None = None,
     verbose: bool = False,
-    install_path_launcher: bool = True,
-    confirmed_app_dir: Path | None = None,
-    selected_exe: str | Path | None = None,
     status_callback=None,
     runtime: RuntimeSpec | None = None,
+    force_new: bool = False,
 ) -> PackResult:
-    del install_path_launcher, confirmed_app_dir, selected_exe
+    """Convert one input. Re-dropping an already converted input reuses it unless ``force_new``."""
     if not install_desktop:
         raise ValueError("Funnel recovery requires creation of both desktop application entries")
     ensure_layout()
     source = Path(raw).expanduser().resolve()
+    if not force_new:
+        existing = _existing_result(source)
+        if existing is not None:
+            return existing
     resolved, resolve_notes = resolve_payload(source)
     det = detect_input(resolved)
     if force_name:
@@ -309,7 +336,7 @@ def pack_path(
     messages.extend((
         f"launch={launch_path}", f"desktop={menu_path}", f"desktop_pin={desktop_path}",
         f"exe={det.exe}", f"compat_path={compat_path}",
-        "library=KDE Application Launcher", "originals=untouched",
+        "originals=untouched",
     ))
     meta = {
         "packed_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "display_name": det.display_name,

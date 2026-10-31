@@ -7,15 +7,16 @@ from pathlib import Path
 
 HOME = Path.home()
 
+# Wine/UMU prefixes created by Funnel (Steam Proton prefixes live in Steam's compatdata)
+PREFIXES = HOME / ".local/share/funnel/prefixes"
+
 # Hidden engine (never the user-facing library)
 ENGINE = HOME / ".funnel"
 LOGS = ENGINE / "logs"
 ICONS = ENGINE / "icons"
 STATE = ENGINE / "state"
-MEDIA_BACKUP = ENGINE / "media-backup"
 CACHE = ENGINE / "cache"
 GAMES_CACHE = CACHE / "games"  # extracted archives live here
-TEST_RUNS = ENGINE / "test-runs"
 
 # Standard FreeDesktop install locations (the real library)
 LAUNCH_DIR = HOME / ".local/bin"
@@ -38,5 +39,5 @@ def xdg_desktop_dir() -> Path:
 
 
 def ensure_layout() -> None:
-    for p in (ENGINE, LOGS, ICONS, STATE, MEDIA_BACKUP, CACHE, GAMES_CACHE, TEST_RUNS, LAUNCH_DIR, DESKTOP_DIR, xdg_desktop_dir()):
+    for p in (ENGINE, LOGS, ICONS, STATE, CACHE, GAMES_CACHE, LAUNCH_DIR, DESKTOP_DIR, xdg_desktop_dir()):
         p.mkdir(parents=True, exist_ok=True)

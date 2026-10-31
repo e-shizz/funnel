@@ -39,6 +39,18 @@ You can also run it from a terminal:
 funnel "/path/to/game-or-archive"
 ```
 
+## Managing your games
+
+```bash
+funnel list                    # see everything Funnel has converted
+funnel remove "Cool Game"      # remove its launcher and menu entries
+funnel remove cool-game --purge  # also delete its Wine prefix (saves!) and extracted copy
+```
+
+Dropping the same game again just points you to the launcher you already have. Use `funnel --new PATH` if you really want a second copy.
+
+Removing a game never touches your original files. Without `--purge`, the game's Wine prefix (where most saves and settings live) is kept.
+
 ## Linux distribution notes
 
 Funnel has been tested on Fedora 44 with KDE Plasma.
@@ -54,6 +66,14 @@ Funnel is intended for offline and DRM-free Windows games. Games that require ke
 Funnel was built during OpenAI Build Week with Codex and GPT-5.6. Codex helped implement the GTK drop window, safe archive extraction, game-executable selection, isolated prefixes, and generated Linux launchers. GPT-5.6 helped diagnose failures from real games and simplify the workflow around one action: drop a game in and get a launcher out.
 
 Funnel does not call an AI model while converting a game. Conversion is local and deterministic.
+
+## Development
+
+```bash
+python3 -m unittest discover -s tests
+```
+
+The tests use a fake Wine and a throwaway home folder, so they need no display, no Wine, and never touch your real files.
 
 ## License
 

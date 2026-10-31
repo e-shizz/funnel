@@ -174,7 +174,13 @@ class AddWindow(Gtk.Window):
         else:
             applications = [result] + result.published_apps
             paths = "\n".join(str(application.desktop_copy) for application in applications)
-            self.status.set_text(f"Done: {result.display_name}\nDesktop applications created at:\n{paths}")
+            if result.already_existed:
+                self.status.set_text(
+                    f"Already converted: {result.display_name}\n"
+                    f"It's in your application menu and on your Desktop:\n{paths}"
+                )
+            else:
+                self.status.set_text(f"Done: {result.display_name}\nDesktop applications created at:\n{paths}")
         return False
 
 
