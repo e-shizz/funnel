@@ -11,6 +11,11 @@ from pathlib import Path
 from typing import Callable, Mapping
 
 
+DISABLE_MENU_BUILDER = "winemenubuilder.exe=d"
+# Rotate the per-game error log once it passes this size (bytes).
+ERROR_LOG_LIMIT = 1024 * 1024
+
+
 class RuntimeKind(str, Enum):
     UMU = "umu"
     WINE = "wine"
@@ -134,7 +139,12 @@ def runtime_environment(spec: RuntimeSpec, extra_env: Mapping[str, str] | None =
             "STEAM_COMPAT_CLIENT_INSTALL_PATH": str(spec.steam_root or ""),
             "STEAM_COMPAT_DATA_PATH": str(compat),
         }
+    # Funnel publishes its own launchers; stop Wine from adding duplicate
+    # entries under ~/.local/share/applications/wine for every game/installer.
+    values["WINEDLLOVERRIDES"] = DISABLE_MENU_BUILDER
     values.update({str(key): str(value) for key, value in (extra_env or {}).items()})
+    if DISABLE_MENU_BUILDER not in values["WINEDLLOVERRIDES"]:
+        values["WINEDLLOVERRIDES"] = f"{values['WINEDLLOVERRIDES']};{DISABLE_MENU_BUILDER}".lstrip(";")
     return values
 
 
@@ -218,7 +228,11 @@ if [[ "${{FUNNEL_DEBUG:-0}}" == "1" || "${{1:-}}" == "--debug" ]]; then
   exec {runtime_call} "$GAME"{fixed} "$@"
 fi
 
-exec {runtime_call} "$GAME"{fixed} "$@" 2>>"$LOG_DIR/funnel-$SLUG-errors.log"
+ERROR_LOG="$LOG_DIR/funnel-$SLUG-errors.log"
+if [[ -f "$ERROR_LOG" ]] && (( $(stat -c %s "$ERROR_LOG" 2>/dev/null || echo 0) > {ERROR_LOG_LIMIT} )); then
+  mv -f "$ERROR_LOG" "$ERROR_LOG.1"
+fi
+exec {runtime_call} "$GAME"{fixed} "$@" 2>>"$ERROR_LOG"
 '''
 
 

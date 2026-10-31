@@ -134,7 +134,24 @@ def extract_archive(
     dest_parent: Path | None = None,
     keep_name: str | None = None,
 ) -> ExtractResult:
-    """Extract into a new stable cache directory without replacing old output."""
+    """Extract into a new stable cache directory without replacing old output.
+
+    On failure the new output directory (which this call created) is removed,
+    so failed drops do not leave empty or partial folders in the cache.
+    """
+    result = _extract_archive(archive, dest_parent=dest_parent, keep_name=keep_name)
+    if not result.ok and result.output_dir is not None and result.output_dir.is_dir():
+        shutil.rmtree(result.output_dir, ignore_errors=True)
+        result.output_dir = None
+    return result
+
+
+def _extract_archive(
+    archive: str | Path,
+    *,
+    dest_parent: Path | None,
+    keep_name: str | None,
+) -> ExtractResult:
     ensure_layout()
     source = Path(archive).expanduser().resolve()
     if not source.is_file():

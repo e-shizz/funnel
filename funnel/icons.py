@@ -17,10 +17,12 @@ def extract_icon(app_dir: Path, exe: Path, slug: str) -> Path | None:
     if out.exists() and out.stat().st_size > 100:
         return out
 
-    # A unique work directory avoids replacing another conversion's artifacts.
-    # It is intentionally retained: Funnel's recovery path performs no cleanup.
-    tmp = Path(tempfile.mkdtemp(prefix=f".{slug}.work-", dir=str(ICONS)))
+    # A private scratch directory, removed when extraction finishes.
+    with tempfile.TemporaryDirectory(prefix=f".{slug}.work-", dir=str(ICONS)) as scratch:
+        return _extract_icon(app_dir, exe, out, Path(scratch))
 
+
+def _extract_icon(app_dir: Path, exe: Path, out: Path, tmp: Path) -> Path | None:
     candidates: list[Path] = []
 
     # Prefer .ico next to game
