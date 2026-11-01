@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "about": "Built-in Funnel recipes. Recipes run in order; each one whose 'when' matches adds its hints, env, args, and category. Later recipes can match hints added by earlier ones. Add your own in ~/.config/funnel/recipes.json (same format); they run after these.",
+  "recipes": [
+    {
+      "name": "msix",
+      "note": "Other MSIX packages are apps, not games",
+      "when": {"hints_any": ["msix-identity:*"]},
+      "category": "Utility"
+    },
+    {
+      "name": "msix-codex",
+      "note": "Official Codex MSIX full-trust application",
+      "when": {"hints_any": ["msix-identity:OpenAI.Codex"]},
+      "args": ["--disable-gpu", "--disable-gpu-compositing"],
+      "category": "Development"
+    },
+    {
+      "name": "japanese-text",
+      "note": "Japanese characters in the folder, archive, or game name",
+      "when": {"text_regex": "[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]"},
+      "hints": ["locale:ja_JP"]
+    },
+    {
+      "name": "kirikiri",
+      "note": "KiriKiri visual novels are almost always Japanese",
+      "when": {"files_any": ["*.xp3"]},
+      "hints": ["engine:kirikiri", "locale:ja_JP"]
+    },
+    {
+      "name": "jp-vn-titles",
+      "note": "Common Japanese VN product codes and titles",
+      "when": {"text_regex": "\\b(lbk-|lpk-|asagi|hitozuma|netori|taima|taimanin|koikatu|koikatsu|lilith|black lilith|ntr)\\b"},
+      "hints": ["locale:ja_JP", "class:jp-vn"]
+    },
+    {
+      "name": "unity",
+      "when": {"files_any": ["unityplayer.dll", "*unity*"]},
+      "hints": ["engine:unity"]
+    },
+    {
+      "name": "gamemaker",
+      "when": {"files_all": ["game.exe", "data.win"]},
+      "hints": ["engine:gamemaker"]
+    },
+    {
+      "name": "alicesoft",
+      "note": "AliceSoft System40 / System4 (Rance and others)",
+      "when": {"any": [{"exe_names": ["system40.exe", "system4.exe"]}, {"files_any": ["*.ain"]}]},
+      "hints": ["engine:alicesoft"]
+    },
+    {
+      "name": "alicesoft-movies",
+      "when": {"files_any": ["movie/*.alm"]},
+      "hints": ["media:alm-mpeg"]
+    },
+    {
+      "name": "playmovie",
+      "when": {"files_any": ["dll/playmovie.dll"]},
+      "hints": ["media:playmovie-dshow"]
+    },
+    {
+      "name": "koikatsu",
+      "note": "Koikatsu-class games need the native winhttp (BepInEx)",
+      "when": {"text_regex": "koikatu|koikatsu|charastudio"},
+      "env": {"WINEDLLOVERRIDES": "winhttp=n,b"}
+    },
+    {
+      "name": "nwjs",
+      "note": "NW.js / Electron-like payload",
+      "when": {"files_any": ["nw.dll", "node.dll", "package.json"]},
+      "hints": ["engine:nwjs"]
+    },
+    {
+      "name": "japanese-locale",
+      "note": "Run anything marked Japanese with a Japanese locale",
+      "when": {"hints_any": ["locale:ja_JP"]},
+      "env": {"LANG": "ja_JP.UTF-8", "LC_ALL": "ja_JP.UTF-8"}
+    }
+  ]
+}

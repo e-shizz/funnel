@@ -79,7 +79,7 @@ fi
 
 mkdir -p "$APP_ROOT/funnel" "$BIN_HOME" "$DESKTOP_ROOT" \
   "$ICON_ROOT/scalable/apps" "$ICON_ROOT/48x48/apps" "$ICON_ROOT/128x128/apps" "$ICON_ROOT/256x256/apps"
-for module in "$ROOT"/funnel/*.py; do
+for module in "$ROOT"/funnel/*.py "$ROOT"/funnel/*.json; do
   install -m 0644 "$module" "$APP_ROOT/funnel/"
 done
 install -m 0755 "$ROOT/funnel_gui.py" "$APP_ROOT/funnel_gui.py"

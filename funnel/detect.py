@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import re
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+
+from .recipes import apply_recipes
 
 # Installer / junk names we never treat as the main game unless sole PE
 _SKIP_NAMES = re.compile(
@@ -30,6 +32,10 @@ class Detected:
     slug: str
     hints: list[str]
     fixed_args: tuple[str, ...] = ()
+    env: dict[str, str] = field(default_factory=dict)  # from recipes
+    recipe: str = "default"  # names of matched recipes, joined with '+'
+    category: str | None = None  # menu category chosen by a recipe
+    notes: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -45,10 +51,6 @@ def _slugify(name: str) -> str:
     s = re.sub(r"[^\w\s-]", "", s, flags=re.UNICODE)
     s = re.sub(r"[-\s]+", "-", s).strip("-")
     return s[:64] or "windows-app"
-
-
-def _looks_japanese(text: str) -> bool:
-    return bool(re.search(r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]", text))
 
 
 def _local_name(tag: str) -> str:
@@ -218,53 +220,10 @@ def detect_input(raw: str | Path) -> Detected:
         if manifest is None:
             hints.append(f"picked-exe:{exe.name}")
 
-    # Human name cleanup
     display_name = display.strip() or "Windows App"
-    slug = "codex" if "msix-identity:OpenAI.Codex" in hints else _slugify(display_name)
-
-    if _looks_japanese(str(path)) or _looks_japanese(display_name):
-        hints.append("locale:ja_JP")
-
-    # Engine fingerprints (cheap)
-    try:
-        siblings = {p.name.lower() for p in app_dir.iterdir()}
-    except OSError:
-        siblings = set()
-    if "unityplayer.dll" in siblings or any("unity" in s for s in siblings):
-        hints.append("engine:unity")
-    if any(s.endswith(".xp3") or s == "data.xp3" for s in siblings):
-        hints.append("engine:kirikiri")
-        hints.append("locale:ja_JP")  # KiriKiri almost always JP VN
-    if "game.exe" in siblings and "data.win" in siblings:
-        hints.append("engine:gamemaker")
-
-    # AliceSoft System40 / System4 (Rance, etc.)
-    exe_l = exe.name.lower()
-    if exe_l in {"system40.exe", "system4.exe"} or any(
-        s.endswith(".ain") for s in siblings
-    ):
-        hints.append("engine:alicesoft")
-    movie_dir = app_dir / "movie"
-    if movie_dir.is_dir():
-        try:
-            for m in movie_dir.iterdir():
-                if m.suffix.lower() == ".alm":
-                    hints.append("media:alm-mpeg")
-                    break
-        except OSError:
-            pass
-    if (app_dir / "DLL" / "PlayMovie.dll").is_file():
-        hints.append("media:playmovie-dshow")
-
-    # Lilith / common JP adult VN product codes & titles (Atlas golden set)
-    blob = f"{path} {display_name} {exe.name}".lower()
-    if re.search(
-        r"\b(lbk-|lpk-|asagi|hitozuma|netori|taima|taimanin|koikatu|koikatsu|"
-        r"lilith|black lilith|ntr)\b",
-        blob,
-    ):
-        hints.append("locale:ja_JP")
-        hints.append("class:jp-vn")
+    applied = apply_recipes(
+        app_dir=app_dir, exe=exe, text=f"{path} {display_name} {exe.name}", hints=hints,
+    )
 
     return Detected(
         kind=kind,
@@ -272,8 +231,11 @@ def detect_input(raw: str | Path) -> Detected:
         exe=exe,
         app_dir=app_dir,
         display_name=display_name,
-        slug=slug,
-        hints=hints,
-        fixed_args=("--disable-gpu", "--disable-gpu-compositing")
-        if "msix-identity:OpenAI.Codex" in hints else (),
+        slug=_slugify(display_name),
+        hints=applied.hints,
+        fixed_args=tuple(applied.args),
+        env=applied.env,
+        recipe=applied.label,
+        category=applied.category,
+        notes=applied.notes,
     )

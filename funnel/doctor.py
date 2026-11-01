@@ -111,7 +111,20 @@ def doctor_checks(
     prefix_root = home_path / ".local/share/funnel/prefixes"
     checks.append(Check("prefix directory", _writable_without_creating(prefix_root), f"{prefix_root} (checked without creating it)", "Make the user-owned XDG data directory writable."))
     checks.append(Check("distribution", distro != "unknown", distro, package_hint))
+    checks.append(_recipes_check())
     return checks
+
+
+def _recipes_check() -> Check:
+    from .recipes import RecipeError, load_recipes, user_recipes_path
+
+    user = user_recipes_path()
+    try:
+        count = len(load_recipes())
+    except RecipeError as exc:
+        return Check("recipes", False, str(exc), f"Fix or move aside {user}.")
+    where = f"; includes {user}" if user.is_file() else ""
+    return Check("recipes", True, f"{count} loaded{where}")
 
 
 def format_checks(checks: list[Check]) -> str:

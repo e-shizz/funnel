@@ -90,38 +90,8 @@ def _compat_id_for(path: Path, slug: str) -> str:
 
 
 def _pick_recipe(det: Detected) -> tuple[str, dict[str, str], list[str]]:
-    env: dict[str, str] = {}
-    notes: list[str] = []
-    hints = set(det.hints)
-    recipe = "proton-default"
-    if "msix-identity:OpenAI.Codex" in hints:
-        recipe = "codex-msix-proton"
-        notes.append("Official Codex MSIX full-trust application")
-    if "locale:ja_JP" in hints:
-        env.update(LANG="ja_JP.UTF-8", LC_ALL="ja_JP.UTF-8")
-        recipe = "proton-jp" if recipe == "proton-default" else recipe + "+jp"
-        notes.append("Japanese payload -> ja_JP locale")
-    if "engine:unity" in hints:
-        recipe = "proton-unity" if recipe == "proton-default" else recipe + "+unity"
-        notes.append("Unity fingerprints")
-    if "engine:alicesoft" in hints or "media:alm-mpeg" in hints:
-        if recipe == "proton-default":
-            recipe = "proton-alicesoft"
-        notes.append("AliceSoft/System40 fingerprints")
-    low = f"{det.exe.name} {det.display_name}".casefold()
-    if "koikatu" in low or "koikatsu" in low or "charastudio" in low:
-        env["WINEDLLOVERRIDES"] = "winhttp=n,b;winemenubuilder.exe=d"
-        recipe = "proton-koikatsu"
-        notes.append("Koikatsu-class overrides")
-    try:
-        siblings = {path.name.casefold() for path in det.app_dir.iterdir()}
-    except OSError:
-        siblings = set()
-    if "nw.dll" in siblings or "node.dll" in siblings or "package.json" in siblings:
-        if recipe == "proton-default":
-            recipe = "proton-nwjs"
-        notes.append("NW.js/Electron-like payload")
-    return recipe, env, notes
+    """Recipe label, extra environment, and notes chosen by recipes.json for this game."""
+    return det.recipe, dict(det.env), list(det.notes)
 
 
 def _publication_slot(base_slug: str, exe: Path, steam: Path, reserve_compat: bool = True) -> tuple[str, str, Path, Path, Path]:
@@ -212,8 +182,6 @@ def pack_path(
     steam_path = Path(steam or os.environ.get("FUNNEL_STEAM") or DEFAULT_STEAM).expanduser()
     recipe, env, notes = _pick_recipe(det)
     notes = list(resolve_notes) + notes
-    if any(hint in det.hints for hint in ("media:alm-mpeg", "engine:alicesoft", "media:playmovie-dshow")):
-        notes.append("movie_fix=not-applied (original and extracted payload files are never rewritten)")
 
     from .installer import installer_product_hint, looks_like_installer, publish_installed_apps
     installer_mode = source.is_file() and looks_like_installer(source)
@@ -303,10 +271,8 @@ def pack_path(
     script = render_launcher(runtime_spec, det.exe, det.fixed_args, extra_env=env, slug=slug,
                              recipe=recipe, log_dir=LOGS)
     icon_value = str(icon_path) if icon_path else "application-x-executable"
-    if "msix-identity:OpenAI.Codex" in det.hints:
-        categories = "Development;"
-    elif any(hint.startswith("msix-identity:") for hint in det.hints):
-        categories = "Utility;"
+    if det.category:
+        categories = f"{det.category};"
     else:
         categories = "Utility;" if source.is_file() and source.suffix.casefold() == ".exe" else "Game;"
     desktop_body = DESKTOP_TEMPLATE.format(
@@ -390,7 +356,7 @@ def publish_existing_executable(
                              recipe=recipe, log_dir=LOGS)
     desktop_body = DESKTOP_TEMPLATE.format(
         name=_desktop_value(display_name), exec_path=_desktop_exec(launch_path), app_dir=_desktop_value(target.parent),
-        icon=_desktop_value(icon_path or "application-x-executable"), categories="Utility;", slug=_desktop_value(slug),
+        icon=_desktop_value(icon_path or "application-x-executable"), categories=f"{det.category or 'Utility'};", slug=_desktop_value(slug),
         exe=_desktop_value(target), recipe=_desktop_value(recipe), runtime=runtime_spec.kind.value.upper(),
     )
     _write_new(launch_path, script, 0o755)
