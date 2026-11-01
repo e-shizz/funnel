@@ -41,6 +41,10 @@ funnel "/path/to/game-or-archive"
 
 ## Managing your games
 
+The Funnel window lists every game you've converted. Each one has a **Play** button, and its menu can open the game folder, open the logs, or remove the game.
+
+From a terminal:
+
 ```bash
 funnel list                    # see everything Funnel has converted
 funnel remove "Cool Game"      # remove its launcher and menu entries
@@ -50,6 +54,25 @@ funnel remove cool-game --purge  # also delete its Wine prefix (saves!) and extr
 Dropping the same game again just points you to the launcher you already have. Use `funnel --new PATH` if you really want a second copy.
 
 Removing a game never touches your original files. Without `--purge`, the game's Wine prefix (where most saves and settings live) is kept.
+
+## Game-specific tweaks (recipes)
+
+Some games need a little help, like a Japanese locale or a DLL override. Funnel keeps these rules in [`funnel/recipes.json`](funnel/recipes.json) instead of in code. To add your own, create `~/.config/funnel/recipes.json` in the same format:
+
+```json
+{
+  "recipes": [
+    {
+      "name": "my-game-windowed",
+      "when": {"exe_names": ["mygame.exe"]},
+      "args": ["-windowed"],
+      "env": {"WINEDLLOVERRIDES": "d3d9=n,b"}
+    }
+  ]
+}
+```
+
+Your recipes run after the built-in ones, so they can override them. They apply to games you convert from then on. `funnel doctor` tells you if the file has a mistake. All the options are described at the top of [`funnel/recipes.py`](funnel/recipes.py).
 
 ## Linux distribution notes
 
